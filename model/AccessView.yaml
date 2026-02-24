@@ -263,6 +263,6 @@ cube:
       title: 访问量
 
     minCountArray:
-      sql: arrayStringConcat(arrayMap(x -> toString(x), sumMap([toUnixTimestamp(toStartOfMinute(ts))], [1]).2), ',')
+      sql: sumMap([toUnixTimestamp(toStartOfMinute(ts))], [1])
       type: string
       title: 分钟访问量
