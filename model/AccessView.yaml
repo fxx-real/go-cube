@@ -177,7 +177,7 @@ cube:
 
     responseRisk:
       sql: res_risk
-      type: string
+      type: array
       title: 响应风险
 
     responseAction:
@@ -249,6 +249,27 @@ cube:
       sql: if(notEmpty(res_sens_k),100-100*arrayProduct(arrayMap(x -> 1-0.01*dictGetInt64('default.privacy_dict','score',x),arrayDistinct(res_sens_k))),0)
       type: number
       title: 敏感得分
+
+    # --- filter 专用字段（数组类型，用 has/hasAny 过滤）---
+    riskFilterTag:
+      sql: arrayConcat(req_risk, res_risk)
+      type: array
+      title: 风险规则过滤器
+
+    reqRiskFilterTag:
+      sql: req_risk
+      type: array
+      title: 请求风险规则过滤器
+
+    sensKeyFilterTag:
+      sql: arrayConcat(req_sens_k, res_sens_k)
+      type: array
+      title: 敏感数据类型标签
+
+    weakKeyFilterTag:
+      sql: weak_k
+      type: array
+      title: 弱项Key过滤器
 
   segments:
     org:
