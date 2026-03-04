@@ -341,7 +341,7 @@ cube:
       title: X-Forwarded-For
 
     customParamMap:
-      sql: mapFromArrays(key,data,4)
+      sql: mapFromArrays(key,data)
       type: string
       title: 自定义参数
 
@@ -410,11 +410,6 @@ cube:
       sql: data[indexOf(key, '{key}')]
       type: string
       title: 自定义数据
-
-    customDataStr:
-      sql: "toString(arrayMap(x -> x || '|-|' || data[indexOf(key, x)], splitByString('|-|', '')))"
-      type: string
-      title: 自定义数据字符串
 
     hostUrl:
       sql: "concat(host, multiIf(url_route != '', url_route, countSubstrings(url, '/') < 2, url, arrayStringConcat(arrayMap(x -> if(countMatches(x, '[0-9a-fA-F-]') > 0.8 * length(x), '{parameter}', x), splitByChar('/', url)), '/')))"
@@ -581,15 +576,6 @@ cube:
       type: string
       title: 响应Body
 
-    reqSensValue:
-      sql: req_sens_v
-      type: string
-      title: 敏感数据(请求)
-
-    respSensValue:
-      sql: res_sens_v
-      type: string
-      title: 敏感数据(响应)
 
     reqSampleKey:
       sql: arraySlice(req_sens_k,1,1000)
@@ -1071,38 +1057,3 @@ cube:
       sql: "toJSONString(map('value',if(position(upstream,']')!=0,regexpExtract(upstream,'\\[(.*)\\]',1),splitByChar(':',upstream)[1]),'type','server','middware',arrayStringConcat(arrayFilter(x->x!='',arrayDistinct(array(if(countIf(url like '%/\\_search' AND length(splitByChar('/',url)) IN (3,4))>0,'es','')))),','),'channel',channel))"
       type: string
       title: 目标节点(含中间件)
-
-    bizRiskCount:
-      sql: "countIf(notEmpty(arrayFilter(x->not(startsWith(x,'APP') or startsWith(x,'H5')),arrayFilter(x->dictGetInt64('default.risk_dict','score',x)!=0,req_risk))))"
-      type: number
-      title: 业务风险数量
-
-    searchCount:
-      sql: "countIf(url_action[1]='search' and url_action[2]!='auto')"
-      type: number
-      title: 总查询量
-
-    finSearchCount:
-      sql: "countIf(url_action[1]='search' and url_action[2]!='auto' and (result='by_airline' or result='pass'))"
-      type: number
-      title: 有效查询量
-
-    bookCount:
-      sql: "countIf(url_action[1]='book' and url_action[2]!='auto')"
-      type: number
-      title: 总订票数
-
-    finBookCount:
-      sql: "countIf(url_action[1]='book' and url_action[2]!='auto' and (result='by_airline' or result='pass'))"
-      type: number
-      title: 合法订票数
-
-    searchBookRatio:
-      sql: "countIf(url_action[1]='search' and url_action[2]!='auto')/if(countIf(url_action[1]='book' and url_action[2]!='auto')=0,1,countIf(url_action[1]='book' and url_action[2]!='auto'))"
-      type: number
-      title: 原始查订比
-
-    finSearchBookRatio:
-      sql: "countIf(url_action[1]='search' and url_action[2]!='auto' and (result='by_airline' or result='pass'))/if(countIf(url_action[1]='book' and url_action[2]!='auto' and (result='by_airline' or result='pass'))=0,1,countIf(url_action[1]='book' and url_action[2]!='auto' and (result='by_airline' or result='pass')))"
-      type: number
-      title: 查订比
