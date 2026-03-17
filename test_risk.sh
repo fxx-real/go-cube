@@ -104,9 +104,12 @@ result=$(curl -s "$BASE/load?queryType=multi&query=%7B%22measures%22%3A%20%5B%22
 check "riskFullDesc measure (argMax of dict desc)" "$result"
 
 echo ""
-echo "========================================"
-echo "Results: $pass passed, $fail failed"
-echo "========================================"
+echo "=== 9. riskFullDesc + resSensKv + countNum (单条风险详情) ==="
+# measures: riskFullDesc, resSensKv, countNum
+# filters: risk=境外IP使用账号访问多个应用, type=ip, content=172.31.45.232
+# segments: org
+result=$(curl -s "$BASE/load?queryType=multi&query=%7B%22measures%22%3A%5B%22RiskView.riskFullDesc%22%2C%22RiskView.resSensKv%22%2C%22RiskView.countNum%22%5D%2C%22filters%22%3A%5B%7B%22member%22%3A%22RiskView.risk%22%2C%22operator%22%3A%22equals%22%2C%22values%22%3A%5B%22%E5%A2%83%E5%A4%96IP%E4%BD%BF%E7%94%A8%E8%B4%A6%E5%8F%B7%E8%AE%BF%E9%97%AE%E5%A4%9A%E4%B8%AA%E5%BA%94%E7%94%A8%22%5D%7D%2C%7B%22member%22%3A%22RiskView.type%22%2C%22operator%22%3A%22equals%22%2C%22values%22%3A%5B%22ip%22%5D%7D%2C%7B%22member%22%3A%22RiskView.content%22%2C%22operator%22%3A%22equals%22%2C%22values%22%3A%5B%22172.31.45.232%22%5D%7D%5D%2C%22dimensions%22%3A%5B%5D%2C%22segments%22%3A%5B%22RiskView.org%22%5D%2C%22timezone%22%3A%22Asia%2FShanghai%22%7D")
+check "riskFullDesc+resSensKv+countNum (single risk detail)" "$result"
 
 kill $SERVER_PID 2>/dev/null
 wait $SERVER_PID 2>/dev/null

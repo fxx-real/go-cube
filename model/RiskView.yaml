@@ -152,3 +152,8 @@ cube:
       sql: argMax(dictGet('default.risk_dict', 'desc', risk), ts)
       type: string
       title: 完整的风险描述
+
+    resSensKv:
+      sql: uniqHLL12MapMerge(res_sens_kv)
+      type: string
+      title: 隐私项及值
