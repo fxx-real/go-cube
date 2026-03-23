@@ -301,7 +301,7 @@ func BuildQuery(req *QueryRequest, cube *model.Cube) (string, []interface{}, err
 	}
 
 	// GROUP BY
-	if len(req.Measures) > 0 && (len(req.Dimensions) > 0 || len(granByDim) > 0) {
+	if len(req.Measures) > 0 {
 		sql.WriteString(" GROUP BY ")
 		groupFirst := true
 		for _, dim := range req.Dimensions {
