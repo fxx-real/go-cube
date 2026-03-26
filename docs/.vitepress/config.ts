@@ -15,6 +15,7 @@ export default defineConfig({
         items: [
           { text: '前端设计', link: '/design/design' },
           { text: 'SQL 拼接设计', link: '/design/sql-builder' },
+          { text: 'API 手册', link: '/design/api' },
         ],
       },
     ],
