@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/Servicewall/go-cube/config"
@@ -45,12 +44,4 @@ func Load(ctx context.Context, query string, vars ...map[string][]string) (*Quer
 		req.Vars = vars[0]
 	}
 	return defaultHandler.Query(ctx, req)
-}
-
-// HTTPHandler returns the global Handler as an http.Handler.
-func HTTPHandler() http.Handler {
-	if defaultHandler == nil {
-		panic("go-cube: call Init before HTTPHandler")
-	}
-	return http.HandlerFunc(defaultHandler.HandleLoad)
 }
