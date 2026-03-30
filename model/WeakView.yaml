@@ -13,6 +13,7 @@ cube:
              min(first_time)                    AS first_time,
              argMax(res_sens_count, last_time)  AS res_sens_count
       FROM weak
+      WHERE org = ''
       GROUP BY org, host, channel, url, method, weak_name
     ) AS w
     LEFT JOIN (
@@ -25,9 +26,9 @@ cube:
 
   segments:
     org:
-      sql: org = ''
+      sql: ""
     black:
-      sql: 1=1
+      sql: ""
 
   dimensions:
     topoNetwork:
