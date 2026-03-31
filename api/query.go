@@ -124,22 +124,24 @@ var granularityFunc = map[string]string{
 	"year":    "toStartOfYear",
 }
 
-// buildTimeDimensionClause 根据 dateRange 生成时间过滤片段，与外层 timeDimensions WHERE 逻辑完全一致。
-func buildTimeDimensionClause(colSQL string, dr DateRange) (string, []interface{}) {
+// buildTimeDimensionClause 根据 dateRange 生成时间过滤片段，值直接内联进 SQL。
+func buildTimeDimensionClause(colSQL string, dr DateRange) string {
 	switch v := dr.V.(type) {
 	case []string:
 		if len(v) == 2 {
-			return fmt.Sprintf("%s >= ? AND %s <= ?", colSQL, colSQL), []interface{}{v[0], v[1]}
+			start := "'" + strings.ReplaceAll(v[0], "'", "''") + "'"
+			end := "'" + strings.ReplaceAll(v[1], "'", "''") + "'"
+			return fmt.Sprintf("%s >= %s AND %s <= %s", colSQL, start, colSQL, end)
 		}
 	case string:
 		if v != "" {
 			if start, end, ok := parseRelativeTimeRange(v); ok {
-				return fmt.Sprintf("%s >= %s AND %s <= %s", colSQL, start, colSQL, end), nil
+				return fmt.Sprintf("%s >= %s AND %s <= %s", colSQL, start, colSQL, end)
 			}
-			return fmt.Sprintf("toDate(%s) = %s", colSQL, convertToClickHouseTimeExpr(v)), nil
+			return fmt.Sprintf("toDate(%s) = %s", colSQL, convertToClickHouseTimeExpr(v))
 		}
 	}
-	return "", nil
+	return ""
 }
 
 func BuildQuery(req *QueryRequest, cube *model.Cube) (string, []interface{}, error) {
@@ -147,7 +149,6 @@ func BuildQuery(req *QueryRequest, cube *model.Cube) (string, []interface{}, err
 
 	var sql strings.Builder
 	var params []interface{}
-	var fromParams []interface{}
 	var whereParams []interface{}
 	var havingParams []interface{}
 
@@ -326,15 +327,11 @@ func BuildQuery(req *QueryRequest, cube *model.Cube) (string, []interface{}, err
 		if !ok || td.DateRange.V == nil {
 			continue
 		}
-		if clause, p := buildTimeDimensionClause(field.SQL, td.DateRange); clause != "" {
+		if clause := buildTimeDimensionClause(field.SQL, td.DateRange); clause != "" {
 			where = append(where, clause)
-			whereParams = append(whereParams, p...)
-			// 同步替换子查询中的占位符（使用原始列名而非 dimension SQL 表达式）
 			placeholder := "{filter." + fieldName + "}"
 			if strings.Contains(fromSQL, placeholder) {
-				subClause, subParams := buildTimeDimensionClause(fieldName, td.DateRange)
-				fromSQL = strings.ReplaceAll(fromSQL, placeholder, subClause)
-				fromParams = append(fromParams, subParams...)
+				fromSQL = strings.ReplaceAll(fromSQL, placeholder, buildTimeDimensionClause(fieldName, td.DateRange))
 			}
 		}
 	}
@@ -379,10 +376,8 @@ func BuildQuery(req *QueryRequest, cube *model.Cube) (string, []interface{}, err
 		sql.WriteString(strings.Join(having, " AND "))
 	}
 
-	// params: FROM params first (subquery placeholders), then WHERE, then HAVING
-	// — must match ? placeholder order in generated SQL
-	params = append(fromParams, whereParams...)
-	params = append(params, havingParams...)
+	// params: WHERE params, then HAVING
+	params = append(whereParams, havingParams...)
 
 	// ORDER BY
 	// 如果显式指定了排序，按请求排序；否则若存在带粒度的时间维度，隐式升序（兼容 CubeJS 默认行为）
