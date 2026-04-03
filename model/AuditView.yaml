@@ -108,16 +108,16 @@ cube:
       type: string
       title: 命中规则
 
-    # 请求涉敏 (['密码(14)', '手机(13)'], [80, 50])
+    # 请求涉敏 [('密码(14)', 80), ('手机(13)', 50)]
     reqSensScoreTuple:
-      sql: ((arraySort(x -> (-x.2,x.1), arrayMap(x -> (format('{}({})', x.1, toString(x.2)), dictGetInt64('default.privacy_dict','score',x.1)), arrayZip(mapKeys(uniqMapMerge(req_sens_uniq)), mapValues(uniqMapMerge(req_sens_uniq)))))).1, (arraySort(x -> (-x.2,x.1), arrayMap(x -> (format('{}({})', x.1, toString(x.2)), dictGetInt64('default.privacy_dict','score',x.1)), arrayZip(mapKeys(uniqMapMerge(req_sens_uniq)), mapValues(uniqMapMerge(req_sens_uniq)))))).2)
-      type: string
+      sql: arraySort(x -> (-x.2,x.1), arrayMap(x -> (format('{}({})', x.1, toString(x.2)), dictGetInt64('default.privacy_dict','score',x.1)), arrayZip(mapKeys(uniqMapMerge(req_sens_uniq)), mapValues(uniqMapMerge(req_sens_uniq)))))
+      type: array
       title: 请求涉敏
 
-    # 响应涉敏 (['密码(14)', '手机(13)'], [80, 50])
+    # 响应涉敏 [('密码(14)', 80), ('手机(13)', 50)]
     resSensScoreTuple:
-      sql: ((arraySort(x -> (-x.2,x.1), arrayMap(x -> (format('{}({})', x.1, toString(x.2)), dictGetInt64('default.privacy_dict','score',x.1)), arrayZip(mapKeys(uniqMapMerge(res_sens_uniq)), mapValues(uniqMapMerge(res_sens_uniq)))))).1, (arraySort(x -> (-x.2,x.1), arrayMap(x -> (format('{}({})', x.1, toString(x.2)), dictGetInt64('default.privacy_dict','score',x.1)), arrayZip(mapKeys(uniqMapMerge(res_sens_uniq)), mapValues(uniqMapMerge(res_sens_uniq)))))).2)
-      type: string
+      sql: arraySort(x -> (-x.2,x.1), arrayMap(x -> (format('{}({})', x.1, toString(x.2)), dictGetInt64('default.privacy_dict','score',x.1)), arrayZip(mapKeys(uniqMapMerge(res_sens_uniq)), mapValues(uniqMapMerge(res_sens_uniq)))))
+      type: array
       title: 响应涉敏
 
     # 地图: 国家->唯一IP数 (['中国','美国'],[3,1])
