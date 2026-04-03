@@ -101,11 +101,11 @@ cube:
       type: time
       title: 最近发现时间
 
-    # 风险规则相关（inline展开）
+    # 风险规则相关（与请求/响应涉敏结构一致）
     # riskCount: arrayFilter过滤掉score=0的规则
     riskScoreTuple:
-      sql: ((arraySort(x -> (-x.2,x.1), arrayMap(x -> (format('{}({})', x.1, toString(x.2)), dictGetInt64('default.risk_dict','score',x.1)), arrayFilter(x -> dictGetInt64('default.risk_dict','score',x.1)!=0, arrayZip(sumMap(risk_count).1, sumMap(risk_count).2))))).1, (arraySort(x -> (-x.2,x.1), arrayMap(x -> (format('{}({})', x.1, toString(x.2)), dictGetInt64('default.risk_dict','score',x.1)), arrayFilter(x -> dictGetInt64('default.risk_dict','score',x.1)!=0, arrayZip(sumMap(risk_count).1, sumMap(risk_count).2))))).2)
-      type: string
+      sql: arraySort(x -> (-x.2,x.1), arrayMap(x -> (format('{}({})', x.1, toString(x.2)), dictGetInt64('default.risk_dict','score',x.1)), arrayFilter(x -> dictGetInt64('default.risk_dict','score',x.1)!=0, arrayZip(sumMap(risk_count).1, sumMap(risk_count).2))))
+      type: array
       title: 命中规则
 
     # 请求涉敏 [('密码(14)', 80), ('手机(13)', 50)]

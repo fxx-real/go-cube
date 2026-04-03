@@ -194,12 +194,12 @@ cube:
       title: 应用负责人
     
     riskKeyScoreTuple:
-      sql: arrayStringConcat(arrayMap(x->format('{}({})', x.1, toString(x.2)), arrayFilter(x->dictGetInt64('risk_dict','score',x.1)>0, arrayZip(risk_count.1, risk_count.2))), ',') || ',' || arrayStringConcat(arrayMap(x -> toString(dictGetInt64('risk_dict','score',x.1)), arrayFilter(x->dictGetInt64('risk_dict','score',x.1)>0, arrayZip(risk_count.1, risk_count.2))), ',')
-      type: string
+      sql: arraySort(x -> (-x.2,x.1), arrayMap(x -> (format('{}({})', x.1, toString(x.2)), dictGetInt64('risk_dict','score',x.1)), arrayFilter(x -> dictGetInt64('risk_dict','score',x.1)>0, arrayZip(risk_count.1, risk_count.2))))
+      type: array
     
     weakKeyScoreTuple:
-      sql: arrayStringConcat(arrayMap(x->format('{}({})', x.1, toString(x.2)), arrayFilter(x->dictGetInt64('weak_dict','score',x.1)>0, arrayZip(weak_count.1, weak_count.2))), ',') || ',' || arrayStringConcat(arrayMap(x -> toString(dictGetInt64('weak_dict','score',x.1)), arrayFilter(x->dictGetInt64('weak_dict','score',x.1)>0, arrayZip(weak_count.1, weak_count.2))), ',')
-      type: string
+      sql: arraySort(x -> (-x.2,x.1), arrayMap(x -> (format('{}({})', x.1, toString(x.2)), dictGetInt64('weak_dict','score',x.1)), arrayFilter(x -> dictGetInt64('weak_dict','score',x.1)>0, arrayZip(weak_count.1, weak_count.2))))
+      type: array
     
     currentReqKey:
       sql: multiIf(length((arrayDistinct(arrayReverseSort(x -> x.2, req_key_first_ts_tuple_array).1))[1])=0, '-', length(arrayDistinct(arrayReverseSort(x -> x.2, req_key_first_ts_tuple_array).1))<2, arrayStringConcat(arrayMap(x->'[=]'||x,(arrayDistinct(arrayReverseSort(x -> x.2, req_key_first_ts_tuple_array).1))[1]), ','), arrayStringConcat(arraySort(x-> multiIf(position(x,'=')>0, 3, position(x,'+') > 0, 1, 2), arrayMap(x -> multiIf(has((arrayDistinct(arrayReverseSort(x -> x.2, req_key_first_ts_tuple_array).1))[1], x) AND has((arrayDistinct(arrayReverseSort(x -> x.2, req_key_first_ts_tuple_array).1))[2], x), '[=]' || x, has((arrayDistinct(arrayReverseSort(x -> x.2, req_key_first_ts_tuple_array).1))[1], x), '[+]' || x, '[-]' || x), arrayDistinct(arrayConcat((arrayDistinct(arrayReverseSort(x -> x.2, req_key_first_ts_tuple_array).1))[1], (arrayDistinct(arrayReverseSort(x -> x.2, req_key_first_ts_tuple_array).1))[2])))), ','))
