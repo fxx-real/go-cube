@@ -37,8 +37,8 @@ cube:
       title: 网络类型
 
     respSensTagSet:
-      sql: arrayStringConcat(res_sens_count.1, ', ')
-      type: string
+      sql: res_sens_count.1
+      type: array
       title: 响应涉敏标签
 
     count:
