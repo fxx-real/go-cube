@@ -476,9 +476,11 @@ func BuildQuery(req *QueryRequest, cube *model.Cube) (string, []interface{}, err
 	}
 
 	// LIMIT/OFFSET
-	if req.Limit > 0 {
-		fmt.Fprintf(&sql, " LIMIT %d", req.Limit)
+	limit := req.Limit
+	if limit <= 0 {
+		limit = 1000
 	}
+	fmt.Fprintf(&sql, " LIMIT %d", limit)
 	if req.Offset > 0 {
 		fmt.Fprintf(&sql, " OFFSET %d", req.Offset)
 	}
