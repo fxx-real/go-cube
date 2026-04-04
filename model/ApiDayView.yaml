@@ -1,7 +1,6 @@
 cube:
   name: ApiDayView
-  sql: |
-    SELECT * FROM access_api_day WHERE {filter.dt}
+  sql_table: access_api_day
 
   dimensions:
     dt:
