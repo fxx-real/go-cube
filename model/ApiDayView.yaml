@@ -2,6 +2,13 @@ cube:
   name: ApiDayView
   sql_table: access_api_day
 
+  segments:
+    org:
+      sql: org = {vars.org}
+
+    black:
+      sql: "concat(host, url) NOT IN ({vars.api_exact}) AND NOT multiMatchAny(concat(host, url), [{vars.api_regex}])"
+
   dimensions:
     dt:
       sql: dt
