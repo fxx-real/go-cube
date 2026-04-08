@@ -67,27 +67,6 @@ cube:
       type: string
       title: 域名+URL
 
-    # 上一条请求的 req 原始数据（窗口函数，用于参数变化对比）
-    preReqKeyRaw:
-      sql: assumeNotNull(lagInFrame(req) OVER (ORDER BY first_ts))
-      type: string
-
-    preReqKeyBody:
-      sql: JSONExtractRaw(assumeNotNull(lagInFrame(req) OVER (ORDER BY first_ts)), 'Body')
-      type: string
-
-    preReqKeyQueryMap:
-      sql: JSONExtractRaw(assumeNotNull(lagInFrame(req) OVER (ORDER BY first_ts)), 'QueryMap')
-      type: string
-
-    curReqKeyBody:
-      sql: assumeNotNull(JSONExtractRaw(req, 'Body'))
-      type: string
-
-    curReqKeyQueryMap:
-      sql: assumeNotNull(JSONExtractRaw(req, 'QueryMap'))
-      type: string
-
     # 对比数据：当前版本，形式 key:value\n...
     reqKeyCurDataForDiff:
       sql: "if(notEmpty(assumeNotNull(JSONExtractRaw(req, 'QueryMap'))), '#Query\\n' || arrayStringConcat(arrayMap(k -> k || ':' || JSONExtractString(assumeNotNull(JSONExtractRaw(req, 'QueryMap')), k), JSONExtractKeys(assumeNotNull(JSONExtractRaw(req, 'QueryMap')))),'\\n') || '\\n', '') || if(notEmpty(assumeNotNull(JSONExtractRaw(req, 'Body'))), '#Body\\n' || arrayStringConcat(arrayMap(k -> k || ':' || JSONExtractString(assumeNotNull(JSONExtractRaw(req, 'Body')), k), JSONExtractKeys(assumeNotNull(JSONExtractRaw(req, 'Body')))),'\\n'), '')"
