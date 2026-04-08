@@ -66,3 +66,36 @@ cube:
       sql: "host || url"
       type: string
       title: 域名+URL
+
+    # 上一条请求的 req 原始数据（窗口函数，用于参数变化对比）
+    preReqKeyRaw:
+      sql: assumeNotNull(lagInFrame(req) OVER (ORDER BY first_ts))
+      type: string
+
+    preReqKeyBody:
+      sql: JSONExtractRaw(assumeNotNull(lagInFrame(req) OVER (ORDER BY first_ts)), 'Body')
+      type: string
+
+    preReqKeyQueryMap:
+      sql: JSONExtractRaw(assumeNotNull(lagInFrame(req) OVER (ORDER BY first_ts)), 'QueryMap')
+      type: string
+
+    curReqKeyBody:
+      sql: assumeNotNull(JSONExtractRaw(req, 'Body'))
+      type: string
+
+    curReqKeyQueryMap:
+      sql: assumeNotNull(JSONExtractRaw(req, 'QueryMap'))
+      type: string
+
+    # 对比数据：当前版本，形式 key:value\n...
+    reqKeyCurDataForDiff:
+      sql: "if(notEmpty(assumeNotNull(JSONExtractRaw(req, 'QueryMap'))), '#Query\\n' || arrayStringConcat(arrayMap(k -> k || ':' || JSONExtractString(assumeNotNull(JSONExtractRaw(req, 'QueryMap')), k), JSONExtractKeys(assumeNotNull(JSONExtractRaw(req, 'QueryMap')))),'\\n') || '\\n', '') || if(notEmpty(assumeNotNull(JSONExtractRaw(req, 'Body'))), '#Body\\n' || arrayStringConcat(arrayMap(k -> k || ':' || JSONExtractString(assumeNotNull(JSONExtractRaw(req, 'Body')), k), JSONExtractKeys(assumeNotNull(JSONExtractRaw(req, 'Body')))),'\\n'), '')"
+      type: string
+      title: 当前版本数据
+
+    # 对比数据：旧版本，若当前参数之前无历史则赋默认值 -
+    reqKeyDiffData:
+      sql: "if(assumeNotNull(lagInFrame(req) OVER (ORDER BY first_ts))='', '-', if(notEmpty(JSONExtractRaw(assumeNotNull(lagInFrame(req) OVER (ORDER BY first_ts)), 'QueryMap')), '#Query\\n' || arrayStringConcat(arrayMap(k -> k || ':' || JSONExtractString(if(JSONHas(assumeNotNull(JSONExtractRaw(req, 'QueryMap')), k), assumeNotNull(JSONExtractRaw(req, 'QueryMap')), JSONExtractRaw(assumeNotNull(lagInFrame(req) OVER (ORDER BY first_ts)), 'QueryMap')), k), JSONExtractKeys(JSONExtractRaw(assumeNotNull(lagInFrame(req) OVER (ORDER BY first_ts)), 'QueryMap'))),'\\n') || '\\n', '') || if(notEmpty(JSONExtractRaw(assumeNotNull(lagInFrame(req) OVER (ORDER BY first_ts)), 'Body')), '#Body\\n' || arrayStringConcat(arrayMap(k -> k || ':' || JSONExtractString(if(JSONHas(assumeNotNull(JSONExtractRaw(req, 'Body')), k), assumeNotNull(JSONExtractRaw(req, 'Body')), JSONExtractRaw(assumeNotNull(lagInFrame(req) OVER (ORDER BY first_ts)), 'Body')), k), JSONExtractKeys(JSONExtractRaw(assumeNotNull(lagInFrame(req) OVER (ORDER BY first_ts)), 'Body'))),'\\n'), ''))"
+      type: string
+      title: 旧版本数据
