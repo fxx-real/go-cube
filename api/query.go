@@ -385,7 +385,7 @@ func BuildQuery(req *QueryRequest, cube *model.Cube) (string, []interface{}, err
 
 		clause, p := buildFilterClause(filter, cube)
 		if clause != "" {
-			if isMeasure(filter.Member) {
+			if isMeasure(filter.Member) && !isSubquery {
 				having = append(having, clause)
 				havingParams = append(havingParams, p...)
 			} else {

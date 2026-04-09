@@ -285,6 +285,12 @@ echo "=== 38. ApiDayView: risk+status dimensions (count, filter host, 7 days, li
 result=$(curl -s "$BASE/load?queryType=multi&query=%7B%22measures%22%3A%5B%22ApiDayView.count%22%5D%2C%22timeDimensions%22%3A%5B%7B%22dimension%22%3A%22ApiDayView.dt%22%2C%22dateRange%22%3A%22from+7+days+ago+to+now%22%7D%5D%2C%22filters%22%3A%5B%7B%22member%22%3A%22ApiDayView.host%22%2C%22operator%22%3A%22equals%22%2C%22values%22%3A%5B%22127.0.0.1%22%5D%7D%5D%2C%22dimensions%22%3A%5B%22ApiDayView.risk%22%2C%22ApiDayView.status%22%5D%2C%22order%22%3A%7B%22ApiDayView.count%22%3A%22desc%22%7D%2C%22limit%22%3A5%2C%22timezone%22%3A%22Asia%2FShanghai%22%7D")
 check "ApiDayView: count by risk+status (filter host, 7 days) limit 5" "$result"
 
+echo ""
+echo "=== 39.Apiview weakTag which is at where clause) ==="
+#{"measures":["ApiView.allCountForList"],"timeDimensions":[{"dimension":"ApiView.ts","dateRange":"today"}],"filters":[{"member":"ApiView.sidebarType","operator":"contains","values":["已发现->"]},{"member":"ApiView.topoNetwork","operator":"notEquals","values":["外发"]},{"member":"ApiView.apiTypeTag","operator":"equals","values":["API"]},{"operator":"contains","member":"ApiView.weakTag","values":["无鉴权返回敏感信息"]}],"dimensions":[],"segments":["ApiView.org","ApiView.black","ApiView.onePerDay"],"timezone":"Asia/Shanghai"}
+result=$(curl -s "$BASE/load?query=%7B%22measures%22%3A%5B%22ApiView.allCountForList%22%5D%2C%22timeDimensions%22%3A%5B%7B%22dimension%22%3A%22ApiView.ts%22%2C%22dateRange%22%3A%22today%22%7D%5D%2C%22filters%22%3A%5B%7B%22member%22%3A%22ApiView.sidebarType%22%2C%22operator%22%3A%22contains%22%2C%22values%22%3A%5B%22%E5%B7%B2%E5%8F%91%E7%8E%B0-%3E%22%5D%7D%2C%7B%22member%22%3A%22ApiView.topoNetwork%22%2C%22operator%22%3A%22notEquals%22%2C%22values%22%3A%5B%22%E5%A4%96%E5%8F%91%22%5D%7D%2C%7B%22member%22%3A%22ApiView.apiTypeTag%22%2C%22operator%22%3A%22equals%22%2C%22values%22%3A%5B%22API%22%5D%7D%2C%7B%22operator%22%3A%22contains%22%2C%22member%22%3A%22ApiView.weakTag%22%2C%22values%22%3A%5B%22%E6%97%A0%E9%89%B4%E6%9D%83%E8%BF%94%E5%9B%9E%E6%95%8F%E6%84%9F%E4%BF%A1%E6%81%AF%22%5D%7D%5D%2C%22dimensions%22%3A%5B%5D%2C%22segments%22%3A%5B%22ApiView.org%22%2C%22ApiView.black%22%2C%22ApiView.onePerDay%22%5D%2C%22timezone%22%3A%22Asia%2FShanghai%22%7D&queryType=multi")
+check "ApiView: allCountForList filter weakTag contains 无鉴权返回敏感信息" "$result"
+
 echo "========================================"
 echo "Results: $pass passed, $fail failed"
 echo "========================================"
