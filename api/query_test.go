@@ -1518,6 +1518,10 @@ func TestOfflineTrace(t *testing.T) {
 	queryJSON := []byte(`{
 		"dimensions": ["AccessView.id", "AccessView.ts", "AccessView.ip"],
 		"filters": [{"member": "AccessView.ip", "operator": "equals", "values": ["10.0.0.1"]}],
+		"timeDimensions": [{
+			"dimension": "AccessView.ts",
+			"dateRange": ["2026-06-01", "2026-06-02"]
+		}],
 		"limit": 100
 	}`)
 
@@ -1552,5 +1556,23 @@ func TestOfflineTrace(t *testing.T) {
 	}
 	if !strings.Contains(insertSQL, "'10.0.0.1'") {
 		t.Errorf("expected filter param replaced, got: %s", insertSQL)
+	}
+	if strings.Count(insertSQL, "'10.0.0.1'") != 1 {
+		t.Errorf("expected CubeSQL to appear once, got: %s", insertSQL)
+	}
+	if !strings.Contains(insertSQL,
+		`(id, ts) GLOBAL IN (SELECT "AccessView.id", "AccessView.ts" FROM (`) {
+		t.Errorf("expected tuple GLOBAL IN, got: %s", insertSQL)
+	}
+	if strings.Contains(insertSQL, "id || ts") {
+		t.Errorf("should not concatenate id and ts, got: %s", insertSQL)
+	}
+	if !strings.Contains(insertSQL,
+		`FROM default.access WHERE ts >= toDateTime('2026-06-01') AND ts <= toDateTime('2026-06-02')`) {
+		t.Errorf("expected outer time range pruning, got: %s", insertSQL)
+	}
+	if strings.Contains(insertSQL, `SELECT min("AccessView.ts")`) ||
+		strings.Contains(insertSQL, `SELECT max("AccessView.ts")`) {
+		t.Errorf("should not execute CubeSQL again for min/max, got: %s", insertSQL)
 	}
 }
