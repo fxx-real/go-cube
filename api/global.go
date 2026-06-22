@@ -119,13 +119,29 @@ func OfflineTrace(ctx context.Context, taskID, org string, mask bool, clickhouse
 	colStr := "task_id,task_ts," + sourceColumns
 	taskIDEscaped := strings.ReplaceAll(taskID, "'", "''")
 
-	// 数据源 SQL：从 access 全表中根据 CubeSQL 结果过滤
+	// 数据源 SQL：
+	// 1. 将请求中的时间条件直接下推到外层 access 查询，帮助 ClickHouse 裁剪分区/数据块。
+	// 2. CubeSQL 只执行一次，并使用 (id, ts) Tuple 匹配，避免重复执行 CubeSQL
+	//    以及 id || ts 带来的字符串转换、内存分配和潜在碰撞。
 	cubeSQL := dataSQL
+	var outerWhere []string
+	for _, td := range req.TimeDimensions {
+		_, fieldName, subKey := splitMemberName(td.Dimension)
+		field, ok := m.GetField(fieldName, subKey)
+		if !ok || td.DateRange.V == nil {
+			continue
+		}
+		if clause := buildTimeDimensionClause(field.SQL, td.DateRange); clause != "" {
+			outerWhere = append(outerWhere, clause)
+		}
+	}
+	outerWhere = append(outerWhere,
+		`(id, ts) GLOBAL IN (`+
+			`SELECT "AccessView.id", "AccessView.ts" FROM (`+cubeSQL+`))`)
+
 	insertDataSQL := fmt.Sprintf(
-		`SELECT '%s' AS task_id, now() AS task_ts, %s FROM access WHERE `+
-			`ts BETWEEN (SELECT min("AccessView.ts") FROM (%s)) AND (SELECT max("AccessView.ts") FROM (%s)) `+
-			`AND id || ts GLOBAL IN (SELECT "AccessView.id" || "AccessView.ts" FROM (%s))`,
-		taskIDEscaped, sourceColumns, cubeSQL, cubeSQL, cubeSQL)
+		`SELECT '%s' AS task_id, now() AS task_ts, %s FROM %s WHERE %s`,
+		taskIDEscaped, sourceColumns, m.GetSQLTable(), strings.Join(outerWhere, " AND "))
 
 	insertSQL := "INSERT INTO access_offline_local (" + colStr + ") " + insertDataSQL
 
